@@ -1,0 +1,24 @@
+sourceSets {
+    testCommon {
+        java.srcDir file("src/test-common/java")
+    }
+}
+
+configurations {
+    // test-common
+    testCommonCompileOnly.extendsFrom testCompileOnly
+    testCommonAnnotationProcessor.extendsFrom testAnnotationProcessor
+}
+
+dependencies {
+
+    testCommonImplementation(
+            rootProject.sourceSets.main.output
+    )
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
