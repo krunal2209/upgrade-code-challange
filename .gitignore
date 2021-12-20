@@ -1,0 +1,29 @@
+# Gradle
+.gradle
+
+# Build output
+**/build
+**/classes
+/swagger/html-documentation
+lombok.config
+
+# IDEA
+.idea
+*.iml
+*.ipr
+*.iws
+altassian-ide-plugin.xml
+
+# Eclipse
+.classpath
+.project
+.settings
+.externalToolBuilders
+.factorypath
+.mymetadata
+.springBeans
+maven-eclipse.xml
+target
+
+# Mac
+.DS_STORE
