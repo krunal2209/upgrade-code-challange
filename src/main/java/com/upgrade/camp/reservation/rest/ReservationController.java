@@ -28,9 +28,15 @@ import com.upgrade.camp.reservation.mapper.ReservationRequestMapper;
 import com.upgrade.camp.reservation.mapper.ReservationResponseMapper;
 import com.upgrade.camp.reservation.mapper.UpdateReservationRequestMapper;
 import com.upgrade.camp.reservation.service.ReservationService;
+import com.upgrade.camp.reservation.ws.ErrorResponseWS;
 import com.upgrade.camp.reservation.ws.ReservationRequestWS;
 import com.upgrade.camp.reservation.ws.ReservationResponseWS;
 import com.upgrade.camp.reservation.ws.UpdateReservationRequestWS;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @Slf4j
 @RestController
@@ -43,6 +49,11 @@ public class ReservationController {
 	private final UpdateReservationRequestMapper updateReservationRequestMapper;
 	private final ReservationResponseMapper reservationResponseMapper;
 
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Reservation created successfully", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ReservationResponseWS.class))}),
+			@ApiResponse(responseCode = "400", description = "Bad request", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))}),
+			@ApiResponse(responseCode = "409", description = "Reservation already exists.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))})}
+	)
 	@RequestMapping(value = PATH_RESERVATION,
 			produces = {"application/json"},
 			consumes = {"application/json"},
@@ -57,9 +68,13 @@ public class ReservationController {
 				.orElseThrow(() -> new CreateReservationException("Error while creating a reservation."));
 	}
 
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "204", description = "Reservation canceled successfully"),
+			@ApiResponse(responseCode = "404", description = "No reservation found for given reservation id.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))}),
+			@ApiResponse(responseCode = "409", description = "Reservation already exists.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))}),
+			@ApiResponse(responseCode = "500", description = "Concurrent update on same reservation.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))})}
+	)
 	@RequestMapping(value = PATH_RESERVATION_WITH_ID,
-			produces = {"application/json"},
-			consumes = {"application/json"},
 			method = RequestMethod.DELETE)
 	public ResponseEntity<Void> cancelReservation(@PathVariable String reservationId) {
 		log.info("Delete reservation request received for id = {}.", reservationId);
@@ -67,6 +82,12 @@ public class ReservationController {
 		return ResponseEntity.noContent().build();
 	}
 
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Reservation updates successfully", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ReservationResponseWS.class))}),
+			@ApiResponse(responseCode = "404", description = "No reservation found for given reservation id.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))}),
+			@ApiResponse(responseCode = "409", description = "Reservation already exists.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))}),
+			@ApiResponse(responseCode = "500", description = "Concurrent update on same reservation.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponseWS.class))})}
+	)
 	@RequestMapping(value = PATH_RESERVATION_WITH_ID,
 			produces = {"application/json"},
 			consumes = {"application/json"},
@@ -81,12 +102,15 @@ public class ReservationController {
 				.orElseThrow(() -> new UpdateReservationException("Error while updating reservation."));
 	}
 
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "List of available dates for reservation.")}
+	)
 	@RequestMapping(value = PATH_RESERVATION_AVAILABLE_DATES,
 			produces = {"application/json"},
 			method = RequestMethod.GET)
 	public ResponseEntity<List<LocalDate>> findAvailableDates(
-			@RequestParam(value = "startDate", required = false) LocalDate startDate,
-			@RequestParam(value = "endDate", required = false) LocalDate endDate) {
+			@Parameter(description = "The start date to find available dates for reservation. Default value is today if not provided.") @RequestParam(value = "startDate", required = false) LocalDate startDate,
+			@Parameter(description = "The end date to find available dates for reservation. Default value is the date after 1 month if not provided.") @RequestParam(value = "endDate", required = false) LocalDate endDate) {
 		log.info("Find reservations request received with startDate = {} and endDate = {}.", startDate, endDate);
 		return ResponseEntity.ok(reservationService.findAvailableDates(startDate, endDate));
 	}

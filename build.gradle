@@ -1,3 +1,13 @@
+buildscript {
+    ext {
+        guavaVersion = "30.1.1-jre"
+        lombokVersion = "1.18.20"
+        mapStructVersion = "1.4.2.Final"
+        springOpenApiVersion = "1.6.2"
+        vavrVersion = "0.10.4"
+    }
+}
+
 plugins {
     id 'org.springframework.boot' version '2.6.1'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
@@ -21,21 +31,22 @@ repositories {
 
 dependencies {
     implementation(
-            'org.springframework.boot:spring-boot-starter-web',
-            'org.springframework.boot:spring-boot-starter',
-            "org.springframework.boot:spring-boot-starter-data-jpa",
+            "com.google.guava:guava:${guavaVersion}",
+            "io.vavr:vavr:${vavrVersion}",
             "org.flywaydb:flyway-core",
+            "org.mapstruct:mapstruct:${mapStructVersion}",
+            "org.projectlombok:lombok:${lombokVersion}",
+            "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.boot:spring-boot-starter",
+            "org.springframework.boot:spring-boot-starter-data-jpa",
             "org.springframework.boot:spring-boot-starter-validation",
-            "org.mapstruct:mapstruct:1.4.2.Final",
-            "io.vavr:vavr:0.10.4",
-            'com.google.guava:guava:30.1.1-jre',
-            'org.projectlombok:lombok:1.18.20'
+            "org.springdoc:springdoc-openapi-ui:${springOpenApiVersion}"
     )
-    runtimeOnly 'com.h2database:h2'
-    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly "com.h2database:h2"
+    compileOnly "org.projectlombok:lombok"
     annotationProcessor(
-            'org.projectlombok:lombok',
-            "org.mapstruct:mapstruct-processor:1.4.2.Final"
+            "org.projectlombok:lombok",
+            "org.mapstruct:mapstruct-processor:${mapStructVersion}"
     )
     testImplementation(
             'org.springframework.boot:spring-boot-starter-test',
