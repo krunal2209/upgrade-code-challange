@@ -56,7 +56,7 @@ public final class ReservationFixture {
 	}
 
 	public static ReservationRequestWS reservationRequestForMoreThan1MonthInAdvance() {
-		return buildRequest(LocalDate.now().plusDays(32), LocalDate.now().plusDays(33));
+		return buildRequest(LocalDate.now().plusMonths(1).plusDays(1), LocalDate.now().plusMonths(1).plusDays(3));
 	}
 
 	public static ReservationVO reservationVO() {
@@ -80,7 +80,7 @@ public final class ReservationFixture {
 	}
 
 	public static ReservationVO requestVOForMoreThan1MonthInAdvance() {
-		return buildReservationVO(LocalDate.now().plusDays(32), LocalDate.now().plusDays(33));
+		return buildReservationVO(LocalDate.now().plusMonths(1).plusDays(1), LocalDate.now().plusMonths(1).plusDays(3));
 	}
 
 
@@ -105,7 +105,7 @@ public final class ReservationFixture {
 	}
 
 	public static UpdateReservationRequestWS updateReservationRequestForMoreThan1MonthInAdvance() {
-		return buildUpdateReservationRequest(LocalDate.now().plusDays(32), LocalDate.now().plusDays(33));
+		return buildUpdateReservationRequest(LocalDate.now().plusMonths(1).plusDays(1), LocalDate.now().plusMonths(1).plusDays(3));
 	}
 
 	public static ReservationEntity reservationEntity() {

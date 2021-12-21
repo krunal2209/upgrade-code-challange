@@ -1,7 +1,11 @@
 package com.upgrade.camp.reservation;
 
 import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.arrivalDateAfterDepartureDate;
+import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.arrivalDateIsNull;
 import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.bookingAlreadyExist;
+import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.departureDateIsNull;
+import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.emailIsNull;
+import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.fullNameIsNull;
 import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.maxOneMonthInAdvance;
 import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.minimumOneDayBeforeArrival;
 import static com.upgrade.camp.reservation.fixture.ErrorResponseFixture.minimumOneDayRequired;
@@ -117,6 +121,38 @@ class ReservationControllerTest {
 			sendCreateRequestAndAssert(maxOneMonthInAdvance(), reservationRequestForMoreThan1MonthInAdvance());
 		}
 
+		@Test
+		@DisplayName("Create reservation without full name.")
+		public void testCreateReservationWithoutFullName() {
+			ReservationRequestWS request = reservationRequestWS();
+			request.setFullName(null);
+			sendCreateRequestAndAssert(fullNameIsNull(), request);
+		}
+
+		@Test
+		@DisplayName("Create reservation without email address.")
+		public void testCreateReservationWithoutEmailAddress() {
+			ReservationRequestWS request = reservationRequestWS();
+			request.setEmailAddress(null);
+			sendCreateRequestAndAssert(emailIsNull(), request);
+		}
+
+		@Test
+		@DisplayName("Create reservation without arrival date.")
+		public void testCreateReservationWithoutArrivalDate() {
+			ReservationRequestWS request = reservationRequestWS();
+			request.setArrivalDate(null);
+			sendCreateRequestAndAssert(arrivalDateIsNull(), request);
+		}
+
+		@Test
+		@DisplayName("Create reservation without departure date.")
+		public void testCreateReservationWithoutDepartureDate() {
+			ReservationRequestWS request = reservationRequestWS();
+			request.setDepartureDate(null);
+			sendCreateRequestAndAssert(departureDateIsNull(), request);
+		}
+
 		private void sendCreateRequestAndAssert(ErrorResponseWS expectedResponse, ReservationRequestWS requestWS) {
 			webTestClient
 					.post()
@@ -188,6 +224,22 @@ class ReservationControllerTest {
 		@DisplayName("Update reservation for more than 1 month in advance.")
 		public void testUpdateReservationForMoreThanOneMonthInAdvance() {
 			sendUpdateRequestAndAssert(reservationId, maxOneMonthInAdvance(), updateReservationRequestForMoreThan1MonthInAdvance());
+		}
+
+		@Test
+		@DisplayName("Update reservation without arrival date.")
+		public void testUpdateReservationWithoutArrivalDate() {
+			UpdateReservationRequestWS request = updateReservationRequestWS();
+			request.setArrivalDate(null);
+			sendUpdateRequestAndAssert(reservationId, arrivalDateIsNull(), request);
+		}
+
+		@Test
+		@DisplayName("Update reservation without departure date.")
+		public void testUpdateReservationWithoutDepartureDate() {
+			UpdateReservationRequestWS request = updateReservationRequestWS();
+			request.setDepartureDate(null);
+			sendUpdateRequestAndAssert(reservationId, departureDateIsNull(), request);
 		}
 
 		private void sendUpdateRequestAndAssert(String reservationId, ErrorResponseWS expectedResponse, UpdateReservationRequestWS updateReservationRequestWS) {
