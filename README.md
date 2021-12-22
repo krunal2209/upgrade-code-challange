@@ -1,2 +1,2 @@
-# upgrade-code-challange
-Upgrade code challange
+# upgrade-code-challenge
+Upgrade code challenge
