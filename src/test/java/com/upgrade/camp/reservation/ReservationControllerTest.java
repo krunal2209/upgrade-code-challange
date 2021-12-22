@@ -294,6 +294,29 @@ class ReservationControllerTest {
 	}
 
 	@Test
+	public void testCancelReservation() {
+		webTestClient
+				.post()
+				.uri(PATH_RESERVATION)
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(BodyInserters.fromValue(reservationRequestWS()))
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody(ReservationResponseWS.class)
+				.value(response -> reservationId = response.getId());
+
+		webTestClient
+				.delete()
+				.uri(format(PATH_RESERVATION_WITH_ID, reservationId))
+				.accept(APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isNoContent();
+	}
+
+	@Test
 	public void testConcurrentCreateReservationForSameDate() throws InterruptedException, ExecutionException {
 		ReservationRequestWS reservationRequestWS = reservationRequestWS();
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
