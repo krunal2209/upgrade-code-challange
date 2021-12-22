@@ -32,7 +32,7 @@ To streamline the reservations a few constraints need to be in place
 - There are no restrictions on how reservations are stored as long as system constraints are not violated.
 
 # Campsite reservation service
-This micro-service is used to book reservation for a campsite at underwater volcano in the Pacific Ocean.
+This micro-service is used to book a reservation for a campsite at the underwater volcano in the Pacific Ocean.
 
 ## Prerequisites
 
@@ -53,9 +53,34 @@ For a simple, one-liner build,
 `./gradlew clean build`
 
 # Run Locally
-To run the application locally, you can do it from IntelliJ or from command line. 
+To run the application locally, you can do it from IntelliJ or the command line.
 
 - From command line:
     - `./gradlew bootRun` (This is using gradle's built-in )
 
+#Solution
+The campsite reservation service exposes 4 endpoints. API contract can be accessible with the following URL.
 
+`http://localhost:8080/swagger-ui/index.html`
+
+## Database design
+For now, the campsite has only one campsite for the reservation but the system is designed in a way that it can be easily adjusted to work for more than one campsite in the future.  
+There are 3 tables to hold the reservation information.
+1) `camp_sites`: This table stores the campsite information. Since we have only one campsite at this moment, it contains one hardcoded data. In the future, the service can be enhanced to expose APIs related to campsite management.
+2) `reservations`: This table stores the reservation information and customer information. To be able to make a reservation, campsite, customer, and arrival/departure information is needed. The reservation table has many to one relationship to `camp_sites` table.
+3) `reserved_dates`: This table stores the normalized reservation dates. This table has one unique constraint. It expects to have only one entry for each campsiteId, and reserved date. In simple words, each campsite can be reserved for one day only. The `reserved_dates` table has many to one relationship to the `reservations` table.
+
+## Create reservation API
+`POST http://localhost:8080/api/v1/reservation`
+
+This endpoint is to create a reservation at the campsite. It requires user information like email address and full name. In addition to that, it needs information about arrival and departure date to create a reservation. The reservation will be stored in the two tables(`reservations` and `reserved_dates`). Before creating a reservation there will be a validation to check if the dates are available. If the dates are available the system will try to create a reservation. The system will use a database constraint to handle concurrent create requests. If there are concurrent requests with the same or overlapping dates then either one will be successful and other requests will fail with the appropriate exception message.
+
+## Update reservation API
+`PATCH http://localhost:8080/api/v1/reservation/{reservationId}`
+
+This endpoint is to update existing reservations at the campsite. It requires the reservation id which can be found from the create reservation API response. Before updating the reservation, the system will fetch the existing reservation data from the DB and put the optimistic locking on the record. If we have concurrent update or cancellation requests for the same reservation then only one will be able to acquire the database lock and other requests will fail with the appropriate failure message. If the new reservation dates are not available then the system will roll back the update and the request fails with the appropriate message.
+
+## Cancel reservation API
+`DELETE http://localhost:8080/api/v1/reservation/{reservationId}`
+
+This endpoint is to cancel the reservation at the campsite. It requires the reservation id which can be found from the create reservation API response. Before canceling the reservation, the system will fetch the existing reservation data from the DB and put the optimistic locking on the record. If we have concurrent update or cancellation requests for the same reservation then only one will be able to acquire the database lock and other requests will fail with the appropriate failure message. If the cancellation request is successful then the system will update the reservation entry with the cancellation date and time. In addition to that, the system will open up the canceled date for the reservation by deleting reserved data information from `reserved_dates` table.
