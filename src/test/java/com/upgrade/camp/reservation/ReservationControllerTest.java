@@ -360,6 +360,54 @@ class ReservationControllerTest {
 	}
 
 	@Test
+	public void testConcurrentCreateReservationForOverlappingDates() throws InterruptedException, ExecutionException {
+		ReservationRequestWS reservationRequestWS = reservationRequestWS();
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		Future<ReservationResponseWS> createReservationResponse1 = executorService.submit(() ->
+				webTestClient
+						.post()
+						.uri(PATH_RESERVATION)
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.body(BodyInserters.fromValue(reservationRequestWS))
+						.exchange()
+						.expectStatus()
+						.isOk()
+						.expectBody(ReservationResponseWS.class)
+						.returnResult().getResponseBody());
+
+		TimeUnit.SECONDS.sleep(1);
+
+		ReservationRequestWS overlappingDatesRequest = reservationRequestWS();
+		overlappingDatesRequest.setArrivalDate(LocalDate.now().plusDays(2));
+		overlappingDatesRequest.setDepartureDate(LocalDate.now().plusDays(3));
+
+
+		Future<ErrorResponseWS> createReservationResponse2 = executorService.submit(() ->
+				webTestClient
+						.post()
+						.uri(PATH_RESERVATION)
+						.accept(MediaType.APPLICATION_JSON)
+						.contentType(MediaType.APPLICATION_JSON)
+						.body(BodyInserters.fromValue(overlappingDatesRequest))
+						.exchange()
+						.expectStatus()
+						.is4xxClientError()
+						.expectBody(ErrorResponseWS.class)
+						.returnResult().getResponseBody());
+
+		executorService.shutdown();
+
+		ReservationResponseWS reservationResponseWS = createReservationResponse1.get();
+		assertThat(reservationResponseWS.getId()).isNotNull();
+		assertThat(reservationResponseWS.getFullName()).isEqualTo(reservationRequestWS.getFullName());
+		assertThat(reservationResponseWS.getEmailAddress()).isEqualTo(reservationRequestWS.getEmailAddress());
+		assertThat(reservationResponseWS.getArrivalDate()).isEqualTo(reservationRequestWS.getArrivalDate());
+		assertThat(reservationResponseWS.getDepartureDate()).isEqualTo(reservationRequestWS.getDepartureDate());
+		assertThat(createReservationResponse2.get()).isEqualTo(bookingAlreadyExist());
+	}
+
+	@Test
 	public void testConcurrentCreateReservationForDifferentDate() throws InterruptedException, ExecutionException {
 		ReservationRequestWS request1 = reservationRequestWS();
 		ReservationRequestWS request2 = reservationRequestWS();

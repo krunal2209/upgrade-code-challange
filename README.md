@@ -17,16 +17,12 @@ To streamline the reservations a few constraints need to be in place
 
 ### System Requirements
 
-- The users will need to find out when the campsite is available. So the system should expose an API to provide
-  information of the availability of the campsite for a given date range with the default being 1 month.
+- The users will need to find out when the campsite is available. So the system should expose an API to provide information of the availability of the campsite for a given date range with the default being 1 month.
 - Provide an end point for reserving the campsite. The user will provide his/her email & full name at the time of
-  reserving the campsite along with intended arrival date and departure date. Return a unique booking identifier back to
-  the caller if the reservation is successful.
+  reserving the campsite along with intended arrival date and departure date. Return a unique booking identifier back to the caller if the reservation is successful.
 - The unique booking identifier can be used to modify or cancel the reservation later on. Provide appropriate end
   point(s) to allow modification/cancellation of an existing reservation
-- Due to the popularity of the island, there is a high likelihood of multiple users attempting to reserve the campsite
-  for the same/overlapping date(s). Demonstrate with appropriate test cases that the system can gracefully handle
-  concurrent requests to reserve the campsite.
+- Due to the popularity of the island, there is a high likelihood of multiple users attempting to reserve the campsite for the same/overlapping date(s). Demonstrate with appropriate test cases that the system can gracefully handle concurrent requests to reserve the campsite.
 - Provide appropriate error messages to the caller to indicate the error cases.
 - In general, the system should be able to handle large volume of requests for getting the campsite availability.
 - There are no restrictions on how reservations are stored as long as system constraints are not violated.
@@ -84,3 +80,35 @@ This endpoint is to update existing reservations at the campsite. It requires th
 `DELETE http://localhost:8080/api/v1/reservation/{reservationId}`
 
 This endpoint is to cancel the reservation at the campsite. It requires the reservation id which can be found from the create reservation API response. Before canceling the reservation, the system will fetch the existing reservation data from the DB and put the optimistic locking on the record. If we have concurrent update or cancellation requests for the same reservation then only one will be able to acquire the database lock and other requests will fail with the appropriate failure message. If the cancellation request is successful then the system will update the reservation entry with the cancellation date and time. In addition to that, the system will open up the canceled date for the reservation by deleting reserved data information from `reserved_dates` table.
+
+## Get availability of the campsite API
+`GET http://localhost:8080/api/v1/reservation/availableDates`
+
+This endpoint is to find the availability of the campsite for a given date range. It works without any date range in the request, when no range is provided it returns the availability within one month.
+
+# Solution to the system requirements
+
+### Due to the popularity of the island, there is a high likelihood of multiple users attempting to reserve the campsite for the same/overlapping date(s). Demonstrate with appropriate test cases that the system can gracefully handle concurrent requests to reserve the campsite.
+
+`ReservationControllerTest` has APIs tests to test this scenario. Specifically `testConcurrentCreateReservationForSameDate`, `testConcurrentCreateReservationForOverlappingDates`, `testConcurrentCreateReservationForDifferentDate` and `testConcurrentUpdateReservationAndCreateReservationForSameDate` tests.
+
+These API tests demonstrate that system is capable of handling concurrent requests gracefully and provides an appropriate error message to the caller.
+
+### In general, the system should be able to handle a large volume of requests for getting the campsite availability.
+
+Used Gatling script to do the load testing of the get availability API. Below is the load testing configuration.
+- Total request sent: 2512
+- No of concurrent requests: 50
+- Total number of concurrent users: 25
+
+**Result:**
+
+- All the requests were successful.
+- Average response time was 16ms.
+- Maximum response time was 111ms.
+- p95 of the requests was 38ms.
+
+
+![](src/test/resources/Performance_test_image1.png)
+![](src/test/resources/Performance_test_image2.png)
+![](src/test/resources/Performance_test_image3.png)
