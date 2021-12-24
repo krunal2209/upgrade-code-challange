@@ -40,6 +40,11 @@ public class ReservationServiceImpl implements ReservationService {
 	private final CampSitesRepository campSitesRepository;
 	private final ReservedDatesRepository reservedDatesRepository;
 
+	private static final String CAMP_SITE_UUID = "2f0d2963-8689-4a01-aa58-40cc93dc47f5";
+	private final int MAX_DAYS_FOR_RESERVATION = 3;
+	private final int MIN_DAY_AHEAD_OF_ARRIVAL_FOR_RESERVATION = 1;
+	private final int MAX_MONTH_AHEAD_OF_ARRIVAL_FOR_RESERVATION = 1;
+
 	@Override
 	@Transactional
 	public ReservationVO createReservation(ReservationVO reservationRequestVO) {
@@ -94,7 +99,7 @@ public class ReservationServiceImpl implements ReservationService {
 		validateInputDates(arrivalDate, departureDate);
 		validateIfSiteIsAvailable(arrivalDate, departureDate.minusDays(1), reservationId);
 
-		existingReservation.getReservedDates().stream()
+		existingReservation.getReservedDates()
 				.forEach(reservedDatesEntity -> reservedDatesRepository.deleteById(reservedDatesEntity.getId()));
 		existingReservation.getReservedDates().clear();
 		reservedDatesRepository.flush();
@@ -125,7 +130,7 @@ public class ReservationServiceImpl implements ReservationService {
 		if (startDate.isAfter(endDate)) {
 			throw new InvalidRequestException("Start date can not be after end date date.");
 		}
-		return findAvailableDates(startDate, endDate, null);
+		return findAvailableDates(startDate, endDate.minusDays(1), null);
 	}
 
 	private List<LocalDate> findAvailableDates(LocalDate startDate, LocalDate endDate, String reservationId) {
@@ -152,8 +157,8 @@ public class ReservationServiceImpl implements ReservationService {
 	}
 
 	private CampSiteEntity getCampSite() {
-		return campSitesRepository.findByUuid("2f0d2963-8689-4a01-aa58-40cc93dc47f5")
-				.orElseThrow(() -> new CampSiteNotFoundException(String.format("No Campsite Found with id %s.", "2f0d2963-8689-4a01-aa58-40cc93dc47f5")));
+		return campSitesRepository.findByUuid(CAMP_SITE_UUID)
+				.orElseThrow(() -> new CampSiteNotFoundException(String.format("No Campsite Found with id %s.", CAMP_SITE_UUID)));
 	}
 
 	private ReservationEntity getReservation(String reservationId) {
@@ -169,7 +174,7 @@ public class ReservationServiceImpl implements ReservationService {
 		try {
 			return reservationsRepository.save(reservation);
 		} catch (DataIntegrityViolationException | ObjectOptimisticLockingFailureException e) {
-			throw new ReservationAlreadyExistException("Booking already Exist for given date.");
+			throw new ReservationAlreadyExistException("Booking already Exist for given date.", e);
 		}
 	}
 
@@ -188,20 +193,20 @@ public class ReservationServiceImpl implements ReservationService {
 			throw new InvalidRequestException("Departure date should be after arrival date.");
 		}
 
-		Long noOfDaysToStay = DAYS.between(arrivalDate, departureDate);
+		long noOfDaysToStay = DAYS.between(arrivalDate, departureDate);
 		if (noOfDaysToStay < 1) {
 			throw new InvalidRequestException("The campsite can not be reserved for minimum 1 day.");
 		}
-		if (noOfDaysToStay > 3) {
+		if (noOfDaysToStay > MAX_DAYS_FOR_RESERVATION) {
 			throw new InvalidRequestException("The campsite can not be reserved more than 3 days.");
 		}
 
-		Long noOfDaysBeforeArrival = DAYS.between(LocalDate.now(), arrivalDate);
-		if (noOfDaysBeforeArrival < 1) {
+		long noOfDaysBeforeArrival = DAYS.between(LocalDate.now(), arrivalDate);
+		if (noOfDaysBeforeArrival < MIN_DAY_AHEAD_OF_ARRIVAL_FOR_RESERVATION) {
 			throw new InvalidRequestException("The campsite can be reserved minimum 1 day(s) ahead of arrival.");
 		}
 
-		Long noOfMaxDaysInAdvance = DAYS.between(LocalDate.now(), LocalDate.now().plusMonths(1));
+		long noOfMaxDaysInAdvance = DAYS.between(LocalDate.now(), LocalDate.now().plusMonths(MAX_MONTH_AHEAD_OF_ARRIVAL_FOR_RESERVATION));
 		if (noOfDaysBeforeArrival > noOfMaxDaysInAdvance) {
 			throw new InvalidRequestException("The campsite can be reserved upto 1 month in advance.");
 		}

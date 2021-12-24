@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS reserved_dates (
     PRIMARY KEY (id),
     UNIQUE KEY camp_site_reserved_date_UNIQUE (camp_site_uuid, reserved_date)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX reserved_dates_idx0 ON reserved_dates (reserved_date);

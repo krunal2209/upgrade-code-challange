@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class ReservationNotFoundException extends AbstractReservationServiceException {
 	public ReservationNotFoundException(String message) {
-		super(HttpStatus.NOT_FOUND, message, null);
+		super(HttpStatus.NOT_FOUND, message);
 	}
 }

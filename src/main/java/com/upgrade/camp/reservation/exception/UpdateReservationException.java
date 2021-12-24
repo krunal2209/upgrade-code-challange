@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class UpdateReservationException extends AbstractReservationServiceException {
 	public UpdateReservationException(String message) {
-		super(HttpStatus.INTERNAL_SERVER_ERROR, message, null);
+		super(HttpStatus.INTERNAL_SERVER_ERROR, message);
 	}
 }

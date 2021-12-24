@@ -274,7 +274,7 @@ class ReservationControllerTest {
 				.expectBody(ReservationResponseWS.class)
 				.returnResult().getResponseBody();
 
-		List<LocalDate> availableDates = LocalDate.now().datesUntil(LocalDate.now().plusDays(32))
+		List<LocalDate> availableDates = LocalDate.now().datesUntil(LocalDate.now().plusMonths(1))
 				.collect(Collectors.toList());
 		availableDates.remove(LocalDate.now().plusDays(2));
 		availableDates.remove(LocalDate.now().plusDays(3));

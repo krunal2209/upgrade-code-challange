@@ -19,6 +19,14 @@ public class AbstractReservationServiceException extends RuntimeException {
 				.build();
 	}
 
+	public AbstractReservationServiceException(HttpStatus status, String message) {
+		super(message);
+		this.apiError = ApiError.builder()
+				.status(status)
+				.message(message)
+				.build();
+	}
+
 	@Value
 	@Builder
 	public static class ApiError {

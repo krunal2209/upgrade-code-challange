@@ -18,13 +18,16 @@ import static com.upgrade.camp.reservation.fixture.ReservationFixture.reservatio
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,7 +112,28 @@ public class ReservationServiceTest {
 		assertThatThrownBy(() -> testee.updateReservation(request, RESERVATION_ID))
 				.isInstanceOf(ReservationAlreadyExistException.class)
 				.hasFieldOrPropertyWithValue("message", BOOKING_ALREADY_EXIST_FOR_GIVEN_DATE);
+	}
 
+	@Test
+	public void testFindAvailableDatesWithNullDatesNoExistingReservation() {
+		when(reservedDatesRepository.findDistinctReservation(any(), any())).thenReturn(Collections.emptyList());
+		List<LocalDate> availableDates = LocalDate.now().datesUntil(LocalDate.now().plusMonths(1))
+				.collect(Collectors.toList());
+		List<LocalDate> responses = testee.findAvailableDates(null, null);
+
+		verify(reservedDatesRepository).findDistinctReservation(LocalDate.now(), LocalDate.now().plusMonths(1).minusDays(1));
+		assertThat(responses).isEqualTo(availableDates);
+	}
+
+	@Test
+	public void testFindAvailableDatesWithDatesNoExistingReservation() {
+		when(reservedDatesRepository.findDistinctReservation(any(), any())).thenReturn(Collections.emptyList());
+		List<LocalDate> availableDates = LocalDate.now().plusDays(2).datesUntil(LocalDate.now().plusDays(10))
+				.collect(Collectors.toList());
+		List<LocalDate> responses = testee.findAvailableDates(LocalDate.now().plusDays(2), LocalDate.now().plusDays(10));
+
+		verify(reservedDatesRepository).findDistinctReservation(LocalDate.now().plusDays(2), LocalDate.now().plusDays(9));
+		assertThat(responses).isEqualTo(availableDates);
 	}
 
 	@Test

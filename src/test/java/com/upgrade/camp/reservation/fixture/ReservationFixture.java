@@ -12,7 +12,6 @@ import com.upgrade.camp.reservation.entity.ReservationEntity;
 import com.upgrade.camp.reservation.entity.ReservedDatesEntity;
 import com.upgrade.camp.reservation.vo.ReservationVO;
 import com.upgrade.camp.reservation.ws.ReservationRequestWS;
-import com.upgrade.camp.reservation.ws.ReservationResponseWS;
 import com.upgrade.camp.reservation.ws.UpdateReservationRequestWS;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -24,16 +23,6 @@ public final class ReservationFixture {
 
 	private static final String CAMP_UUID = "2f0d2963-8689-4a01-aa58-40cc93dc47f5";
 	private static final String CAMP_NAME = "SITE-1";
-
-	public static ReservationResponseWS reservationResponseWS() {
-		return ReservationResponseWS.builder()
-				.id(RESERVATION_ID)
-				.fullName(FULL_NAME)
-				.emailAddress(EMAIL_ADDRESS)
-				.arrivalDate(LocalDate.now().plusDays(2))
-				.departureDate(LocalDate.now().plusDays(4))
-				.build();
-	}
 
 	public static ReservationRequestWS reservationRequestWS() {
 		return buildRequest(LocalDate.now().plusDays(2), LocalDate.now().plusDays(4));
