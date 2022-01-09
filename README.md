@@ -76,6 +76,11 @@ This endpoint is to create a reservation at the campsite. It requires user infor
 
 This endpoint is to update existing reservations at the campsite. It requires the reservation id which can be found from the create reservation API response. Before updating the reservation, the system will fetch the existing reservation data from the DB and put the `pessimistic` locking on the record. If we have concurrent update or cancellation requests for the same reservation then only one will be able to acquire the database lock and other requests will fail with the appropriate failure message. If the new reservation dates are not available then the system will roll back the update and the request fails with the appropriate message.
 
+## Get reservation API
+`GET http://localhost:8080/api/v1/reservation/{reservationId}`
+
+This endpoint is to get existing reservations at the campsite. It requires the reservation id which can be found from the create reservation API response. This API filters out canceled reservation. This will return not found error if the reservation id is wrong. 
+
 ## Cancel reservation API
 `DELETE http://localhost:8080/api/v1/reservation/{reservationId}`
 
