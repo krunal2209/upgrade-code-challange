@@ -13,5 +13,7 @@ public interface ReservationService {
 
 	ReservationVO updateReservation(ReservationVO updateReservationRequestVO, String reservationId);
 
+	ReservationVO getReservation(String reservationId);
+
 	List<LocalDate> findAvailableDates(LocalDate startDate, LocalDate endDate);
 }

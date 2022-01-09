@@ -66,19 +66,14 @@ public class ReservationServiceImpl implements ReservationService {
 				.build();
 		reservationsEntity.setReservedDates(buildReservedDatesEntity(arrivalDate, departureDate.minusDays(1), reservationsEntity, campSiteEntity));
 		ReservationEntity savedReservation = saveReservation(reservationsEntity);
-		return ReservationVO.builder()
-				.id(savedReservation.getUuid())
-				.emailAddress(savedReservation.getEmailAddress())
-				.fullName(savedReservation.getFullName())
-				.arrivalDate(savedReservation.getArrivalDate())
-				.departureDate(savedReservation.getDepartureDate())
-				.build();
+
+		return toReservationVO(savedReservation);
 	}
 
 	@Override
 	@Transactional
 	public void cancelReservation(String reservationId) {
-		ReservationEntity existingReservation = getReservation(reservationId);
+		ReservationEntity existingReservation = findReservation(reservationId);
 
 		reservedDatesRepository.deleteAll(existingReservation.getReservedDates());
 		existingReservation.setReservedDates(new ArrayList<>());
@@ -91,7 +86,7 @@ public class ReservationServiceImpl implements ReservationService {
 	public ReservationVO updateReservation(ReservationVO updateReservationRequestVO, String reservationId) {
 		CampSiteEntity campSiteEntity = getCampSite();
 
-		ReservationEntity existingReservation = getReservation(reservationId);
+		ReservationEntity existingReservation = findReservation(reservationId);
 
 		LocalDate arrivalDate = updateReservationRequestVO.getArrivalDate();
 		LocalDate departureDate = updateReservationRequestVO.getDepartureDate();
@@ -108,13 +103,13 @@ public class ReservationServiceImpl implements ReservationService {
 		existingReservation.getReservedDates().addAll(buildReservedDatesEntity(arrivalDate, departureDate.minusDays(1), existingReservation, campSiteEntity));
 		ReservationEntity updateEntity = saveReservation(existingReservation);
 
-		return ReservationVO.builder()
-				.id(updateEntity.getUuid())
-				.emailAddress(updateEntity.getEmailAddress())
-				.fullName(updateEntity.getFullName())
-				.arrivalDate(updateEntity.getArrivalDate())
-				.departureDate(updateEntity.getDepartureDate())
-				.build();
+		return toReservationVO(updateEntity);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ReservationVO getReservation(String reservationId) {
+		return toReservationVO(findReservation(reservationId));
 	}
 
 	@Override
@@ -161,7 +156,7 @@ public class ReservationServiceImpl implements ReservationService {
 				.orElseThrow(() -> new CampSiteNotFoundException(String.format("No Campsite Found with id %s.", CAMP_SITE_UUID)));
 	}
 
-	private ReservationEntity getReservation(String reservationId) {
+	private ReservationEntity findReservation(String reservationId) {
 		try {
 			return reservationsRepository.findByUuidAndCancellationDateIsNull(reservationId)
 					.orElseThrow(() -> new ReservationNotFoundException(String.format("No reservation found with id: %s.", reservationId)));
@@ -226,5 +221,15 @@ public class ReservationServiceImpl implements ReservationService {
 			reservedDatesEntities.add(reservedDate);
 		}
 		return reservedDatesEntities;
+	}
+
+	private ReservationVO toReservationVO(ReservationEntity entity) {
+		return ReservationVO.builder()
+				.id(entity.getUuid())
+				.emailAddress(entity.getEmailAddress())
+				.fullName(entity.getFullName())
+				.arrivalDate(entity.getArrivalDate())
+				.departureDate(entity.getDepartureDate())
+				.build();
 	}
 }
