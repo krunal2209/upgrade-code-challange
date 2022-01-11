@@ -44,7 +44,7 @@ public class GlobalControllerExceptionHandler extends ResponseEntityExceptionHan
 	}
 
 	@ExceptionHandler(value = AbstractReservationServiceException.class)
-	public ResponseEntity<Object> abstractPaymentServiceException(AbstractReservationServiceException e) {
+	public ResponseEntity<Object> abstractReservationException(AbstractReservationServiceException e) {
 		ApiError apiError = e.getApiError();
 		return logAndBuildErrorResponse(apiError, e);
 	}
